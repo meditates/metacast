@@ -1,0 +1,30 @@
+#buy speccpu2017 from the website: cpu2017-1.0.5.iso 
+sudo mount -t iso9660 -o ro,exec,loop cpu2017-1.0.5.iso /mnt
+cd /mnt 
+./install.sh  #/users/meditate/speccpu2017
+cd
+cp x86.cfg /users/meditate/speccpu2017/config
+cd /users/meditate/speccpu2017/
+source shrc
+# build benchmarks
+runcpu --config=x86.cfg --action setup --size=ref all
+# this is build a single benchmark
+runcpu --config=x86.cfg --action=setup --size=ref gcc_r
+# calculate the simpoint
+mkdir /users/meditate/result_perlbench_r
+cd gem5_17
+./run_gem5_x86_spec17_benchmark.sh  perlbench_r /users/meditate/result_perlbench_r
+cd /users/meditate/result_perlbench_r
+/users/meditate/SimPoint.3.2/bin/simpoint -loadFVFile simpoint.bb.gz -maxK 30 -saveSimpoints simpoint_file -saveSimpointWeights weight_file -inputVectorsGzipped
+# take checkpoint
+cd speccpu2017/benchspec/CPU/500.perlbench_r/run/run_base_refrate_mytest-m64.0000/
+mkdir m5out
+/users/meditate/gem5/build/X86/gem5.fast --outdir=m5out/perlbench_r /users/meditate/gem5/configs/example/spec17_config.py --take-simpoint-checkpoint=/users/meditate/result_perlbench_r/simpoint_file,/users/meditate/result_perlbench_r/weight_file,100000000,1000000 --cpu-type=AtomicSimpleCPU --caches --l2cache --l3cache --l1i_size 64kB --l1d_size 32kB --l2_size 1MB --l1i_assoc 8 --l1d_assoc 8 --l2_assoc 16 --l3_size 2MB --l3_assoc 16 --cacheline_size 128 --mem-type DDR3_2133_8x8 --mem-size 16GB --benchmark=perlbench_r
+
+# load checkpoint with the configs in test.csv
+cd /users/meditate
+python3 runspec.py  # change app index and name in line 29,30
+
+# build the csv file for each app
+python3 cal_stats.py # change app name in line 112
+

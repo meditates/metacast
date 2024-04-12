@@ -1,0 +1,25 @@
+# get cpu2006 from spec cpu 2006 website
+cd cpu2006
+. ./shrc
+# this is build a single benchmark
+runspec --config=arm.cfg --size=ref --noreportable --tune=base --iterations=1 mcf
+
+# calculate the simpoint
+mkdir /users/meditate/result_mcf
+cd gem5_06 
+./run_gem5_arm_spec06_benchmark.sh mcf /users/meditate/result_mcf
+cd /users/meditate/result_mcf
+/users/meditate/SimPoint.3.2/bin/simpoint -loadFVFile simpoint.bb.gz -maxK 30 -saveSimpoints simpoint_file -saveSimpointWeights weight_file -inputVectorsGzipped
+
+# take checkpoint
+cd /users/meditate/cpu2006/benchspec/CPU2006/429.mcf/run/run_base_ref_arm.0000/
+mkdir m5out
+/users/meditate/gem5/build/ARM/gem5.fast --outdir=m5out/mcf /users/meditate/gem5/configs/example/spec06_config.py --take-simpoint-checkpoint=/users/meditate/result_mcf/simpoint_file,/users/meditate/result_mcf/weight_file,100000000,1000000 --cpu-type=AtomicSimpleCPU --caches --l2cache --l3cache --l1i_size 64kB --l1d_size 32kB --l2_size 1MB --l1i_assoc 8 --l1d_assoc 8 --l2_assoc 16 --l3_size 2MB --l3_assoc 16 --cacheline_size 128 --mem-type DDR3_2133_8x8 --mem-size 16GB --benchmark=mcf
+
+# load checkpoint with the configs in test.csv
+cd /users/meditate
+python3 runspec.py  # change app index and name in line 30,31
+
+# build the csv file for each app
+python3 cal_stats.py # change app name in line 111
+ 
