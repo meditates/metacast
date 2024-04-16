@@ -12,7 +12,7 @@ runcpu --config=x86.cfg --action setup --size=ref all
 runcpu --config=x86.cfg --action=setup --size=ref gcc_r
 # calculate the simpoint
 mkdir /users/meditate/result_perlbench_r
-cd gem5_17
+cd gem5_2017
 ./run_gem5_x86_spec17_benchmark.sh  perlbench_r /users/meditate/result_perlbench_r
 cd /users/meditate/result_perlbench_r
 /users/meditate/SimPoint.3.2/bin/simpoint -loadFVFile simpoint.bb.gz -maxK 30 -saveSimpoints simpoint_file -saveSimpointWeights weight_file -inputVectorsGzipped
